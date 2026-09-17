@@ -1,0 +1,24 @@
+[[manager.prepend_keymap]]
+on   = [ "C" ]
+run  = "shell 'nvim .' --block"
+desc = "Abrir nvim en el directorio actual (C)"
+
+[[manager.prepend_keymap]]
+on   = [ "g", "n" ]
+run  = "shell 'nvim .' --block"
+desc = "Abrir nvim en el directorio actual (g n)"
+
+[[manager.prepend_keymap]]
+on   = [ "<C-n>" ]
+run  = "shell 'nvim .' --block"
+desc = "Abrir nvim en el directorio actual (Ctrl+n)"
+
+[[manager.prepend_keymap]]
+on   = [ "M" ]
+run  = "plugin mount"
+desc = "Gestor de montajes (USB/Discos)"
+
+[[manager.prepend_keymap]]
+on   = [ "g", "m" ]
+run  = "cd /run/media/yariel"
+desc = "Ir a la carpeta de discos (Media)"

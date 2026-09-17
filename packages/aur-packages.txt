@@ -1,0 +1,9 @@
+accounts-qml-module
+ashell
+ashell-debug
+grub-theme-hollow-knight
+linux-wallpaperengine-git
+linux-wallpaperengine-git-debug
+obs-vertical-canvas-bin-debug
+obs-vertical-canvas-debug
+yay-debug

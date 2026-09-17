@@ -1,0 +1,22 @@
+# Archivos de respaldo y temporales
+*.swp
+*.swo
+*~
+*.bak
+*.tmp
+
+# Historiales y sockets
+*.sock
+*history*
+*.log
+
+# Caches
+__pycache__/
+*.pyc
+
+# Claves privadas y credenciales por seguridad
+id_rsa*
+*.pem
+*.key
+*.token
+.env
