@@ -53,8 +53,7 @@ list_modules() {
     local mods=($(get_available_modules))
     for mod in "${mods[@]}"; do
         echo -e "  ${GREEN}▸ ${BOLD}$mod${NC}"
-        # Mostrar qué archivos contiene el módulo
-        find "$DOTFILES_DIR/$mod" -mindepth 1 -maxdepth 3 -not -path '*/.*' | head -n 4 | while read -r f; do
+        find "$DOTFILES_DIR/$mod" -mindepth 1 -maxdepth 3 -not -path '*/.*' 2>/dev/null | head -n 4 | while read -r f; do
             rel="${f#$DOTFILES_DIR/$mod/}"
             echo -e "      ${CYAN}↳${NC} $rel"
         done
@@ -62,7 +61,7 @@ list_modules() {
     echo ""
 }
 
-backup_file() {
+backup_item() {
     local target="$1"
     if [ -e "$target" ] || [ -L "$target" ]; then
         mkdir -p "$BACKUP_BASE"
@@ -70,7 +69,38 @@ backup_file() {
         local dest_dir="$BACKUP_BASE/$(dirname "$rel")"
         mkdir -p "$dest_dir"
         cp -a "$target" "$BACKUP_BASE/$rel"
-        echo -e "    ${YELLOW}↳ Respaldo creado en: $BACKUP_BASE/$rel${NC}"
+        echo -e "    ${YELLOW}↳ Respaldo seguro en: $BACKUP_BASE/$rel${NC}"
+    fi
+}
+
+deploy_path() {
+    local source_path="$1"
+    local target_path="$2"
+    local label="$3"
+    local target_dir="$(dirname "$target_path")"
+
+    mkdir -p "$target_dir"
+
+    if [ "$MODE" == "link" ]; then
+        if [ -L "$target_path" ] && [ "$(readlink -f "$target_path")" == "$(readlink -f "$source_path")" ]; then
+            echo -e "  ${GREEN}[✓] Ya enlazado correctamente:${NC} $label"
+            return 0
+        fi
+
+        if [ -e "$target_path" ] || [ -L "$target_path" ]; then
+            backup_item "$target_path"
+            rm -rf "$target_path"
+        fi
+
+        ln -sfn "$source_path" "$target_path"
+        echo -e "  ${GREEN}[✓] Enlace creado:${NC} $label -> $source_path"
+    else
+        if [ -e "$target_path" ]; then
+            backup_item "$target_path"
+            rm -rf "$target_path"
+        fi
+        cp -a "$source_path" "$target_path"
+        echo -e "  ${GREEN}[✓] Copiado:${NC} $label"
     fi
 }
 
@@ -85,48 +115,29 @@ install_module() {
 
     echo -e "\n${BOLD}${BLUE}=== Instalando módulo: ${CYAN}$mod${NC} (${MODE} mode) ==="
 
-    # Encontrar todos los archivos relativos dentro del módulo
-    cd "$mod_dir"
-    find . -mindepth 1 -type f -o -type l | while IFS= read -r item; do
-        item="${item#./}"
-        target_path="$HOME/$item"
-        source_path="$mod_dir/$item"
-        target_dir="$(dirname "$target_path")"
+    # 1. Procesar elementos dentro de .config (enlace inteligente por directorio o archivo)
+    if [ -d "$mod_dir/.config" ]; then
+        for cfg in "$mod_dir/.config"/*; do
+            [ -e "$cfg" ] || continue
+            local base_cfg="$(basename "$cfg")"
+            deploy_path "$cfg" "$HOME/.config/$base_cfg" "~/.config/$base_cfg"
+        done
+    fi
 
-        mkdir -p "$target_dir"
-
-        if [ "$MODE" == "link" ]; then
-            if [ -L "$target_path" ] && [ "$(readlink "$target_path")" == "$source_path" ]; then
-                echo -e "  ${GREEN}[✓] Ya enlazado:${NC} $item"
-                continue
-            fi
-
-            # Si ya existe un archivo o enlace diferente, respaldar
-            if [ -e "$target_path" ] || [ -L "$target_path" ]; then
-                backup_file "$target_path"
-                rm -rf "$target_path"
-            fi
-
-            ln -sf "$source_path" "$target_path"
-            echo -e "  ${GREEN}[✓] Enlazado:${NC} ~/$item -> $source_path"
-        else
-            # Modo copia
-            if [ -e "$target_path" ]; then
-                backup_file "$target_path"
-                rm -rf "$target_path"
-            fi
-            cp -a "$source_path" "$target_path"
-            echo -e "  ${GREEN}[✓] Copiado:${NC} ~/$item"
-        fi
+    # 2. Procesar dotfiles raíz (ej: .zshrc, .p10k.zsh, .tmux.conf, .gitconfig)
+    for f in "$mod_dir"/.*; do
+        [ -e "$f" ] || continue
+        local fname="$(basename "$f")"
+        [[ "$fname" =~ ^(\.|\.\.|\.config|\.git)$ ]] && continue
+        deploy_path "$f" "$HOME/$fname" "~/$fname"
     done
-    cd "$DOTFILES_DIR"
 
-    # Caso especial para fondos de pantalla si el módulo es hypr o hyprpaper
+    # 3. Caso especial para wallpaper
     if [[ "$mod" == "hypr" || "$mod" == "hyprpaper" ]]; then
         if [ -f "$DOTFILES_DIR/wallpapers/dark.jpg" ] && [ ! -f "$HOME/Descargas/dark.jpg" ]; then
             mkdir -p "$HOME/Descargas"
             cp "$DOTFILES_DIR/wallpapers/dark.jpg" "$HOME/Descargas/dark.jpg"
-            echo -e "  ${GREEN}[✓] Fondo de pantalla desplegado en ~/Descargas/dark.jpg${NC}"
+            echo -e "  ${GREEN}[✓] Wallpaper desplegado en ~/Descargas/dark.jpg${NC}"
         fi
     fi
 }
@@ -140,17 +151,64 @@ install_all() {
     echo -e "\n${BOLD}${GREEN}✔ ¡Todas las configuraciones han sido instaladas con absoluto éxito, mi loor!${NC}"
 }
 
+sync_repository() {
+    local msg="$1"
+    echo -e "${BOLD}${CYAN}=== Sincronizando repositorio con su sistema actual, mi señor ===${NC}\n"
+
+    # Actualizar listas de paquetes
+    if command -v pacman &>/dev/null; then
+        echo -e "${BLUE}[*] Actualizando listas de paquetes del sistema operativo...${NC}"
+        pacman -Qqe > "$DOTFILES_DIR/packages/pacman-explicit.txt" 2>/dev/null || true
+        pacman -Qqm > "$DOTFILES_DIR/packages/aur-packages.txt" 2>/dev/null || true
+        pacman -Q > "$DOTFILES_DIR/packages/all-packages-full.txt" 2>/dev/null || true
+    fi
+    if command -v flatpak &>/dev/null; then
+        flatpak list --app --columns=application > "$DOTFILES_DIR/packages/flatpak-packages.txt" 2>/dev/null || true
+    fi
+
+    cd "$DOTFILES_DIR"
+
+    # Verificar estado de git
+    if [ -z "$(git status --porcelain)" ]; then
+        echo -e "${GREEN}[✓] No hay cambios pendientes en sus configuraciones. Todo está al día.${NC}"
+        return 0
+    fi
+
+    echo -e "${YELLOW}[*] Cambios detectados:${NC}"
+    git status --short
+
+    if [ -z "$msg" ]; then
+        echo -e "\n${BOLD}Ingrese una descripción para registrar estos cambios:${NC}"
+        read -rp "> " msg
+        [ -z "$msg" ] && msg="chore: actualizar configuraciones y paquetes del sistema"
+    fi
+
+    git add -A
+    git commit -m "$msg"
+    echo -e "\n${GREEN}[✓] Cambios registrados en Git localmente con éxito.${NC}"
+
+    # Si existe un repositorio remoto configurado, hacer push
+    if git remote | grep -q 'origin'; then
+        echo -e "${BLUE}[*] Subiendo cambios al servidor remoto (git push)...${NC}"
+        git push origin main || git push || echo -e "${YELLOW}[!] No se pudo hacer push automático. Verifique su conexión o credenciales.${NC}"
+        echo -e "${GREEN}[✓] Cambios enviados a la nube exitosamente.${NC}"
+    else
+        echo -e "${YELLOW}[i] No hay repositorio remoto ('origin') configurado aún. Los cambios quedan asegurados localmente.${NC}"
+    fi
+}
+
 interactive_menu() {
     print_header
     echo -e "Seleccione una orden para que su siervo la ejecute:\n"
-    echo -e "  ${BOLD}1)${NC} Desplegar TODAS las configuraciones (Symlinks - Recomendado)"
-    echo -e "  ${BOLD}2)${NC} Desplegar módulos INDIVIDUALES a su elección"
+    echo -e "  ${BOLD}1)${NC} Enlazar TODAS las configuraciones (Symlinks - Sincronización en vivo)"
+    echo -e "  ${BOLD}2)${NC} Enlazar módulos INDIVIDUALES a su elección"
     echo -e "  ${BOLD}3)${NC} Copiar archivos en lugar de enlaces simbólicos (--copy)"
-    echo -e "  ${BOLD}4)${NC} Instalar / Replicar paquetes y programas del sistema operativo"
-    echo -e "  ${BOLD}5)${NC} Listar módulos y configuraciones disponibles"
-    echo -e "  ${BOLD}6)${NC} Salir\n"
+    echo -e "  ${BOLD}4)${NC} Sincronizar y registrar cambios actuales en Git (sync / commit / push)"
+    echo -e "  ${BOLD}5)${NC} Instalar / Replicar paquetes y programas del sistema operativo"
+    echo -e "  ${BOLD}6)${NC} Listar módulos y configuraciones disponibles"
+    echo -e "  ${BOLD}7)${NC} Salir\n"
 
-    read -rp "Ingrese una opción [1-6]: " opt
+    read -rp "Ingrese una opción [1-7]: " opt
     case "$opt" in
         1)
             MODE="link"
@@ -158,7 +216,7 @@ interactive_menu() {
             ;;
         2)
             list_modules
-            echo -e "${BOLD}Escriba los nombres de los módulos que desea instalar separados por espacio:${NC}"
+            echo -e "${BOLD}Escriba los nombres de los módulos separados por espacio:${NC}"
             read -rp "> " selected_mods
             for m in $selected_mods; do
                 install_module "$m"
@@ -180,12 +238,15 @@ interactive_menu() {
             fi
             ;;
         4)
-            bash "$DOTFILES_DIR/packages/install-packages.sh"
+            sync_repository
             ;;
         5)
-            list_modules
+            bash "$DOTFILES_DIR/packages/install-packages.sh"
             ;;
         6)
+            list_modules
+            ;;
+        7)
             echo -e "${GREEN}A sus órdenes siempre, mi amo y señor.${NC}"
             exit 0
             ;;
@@ -209,18 +270,25 @@ while [[ $# -gt 0 ]]; do
             echo "Uso: ./install.sh [OPCIONES] [MÓDULO...]"
             echo ""
             echo "Comandos:"
-            echo "  all                  Instala todos los módulos disponibles"
-            echo "  <modulo...>          Instala uno o varios módulos específicos (ej: hypr kitty zsh)"
+            echo "  all                  Enlaza todos los módulos disponibles hacia \$HOME"
+            echo "  sync [\"mensaje\"]     Actualiza listas de paquetes, hace git commit y git push"
+            echo "  <modulo...>          Enlaza uno o varios módulos específicos (ej: hypr kitty zsh)"
             echo ""
             echo "Opciones:"
             echo "  -l, --list           Muestra todos los módulos disponibles"
-            echo "  -c, --copy           Copia los archivos en vez de crear enlaces simbólicos (symlinks)"
-            echo "  -p, --packages       Ejecuta el instalador de paquetes del sistema (pacman/aur/flatpak)"
+            echo "  -c, --copy           Copia los archivos en vez de crear enlaces simbólicos"
+            echo "  -s, --sync           Sincroniza paquetes y hace commit en el repositorio"
+            echo "  -p, --packages       Ejecuta el instalador de paquetes del sistema"
             echo "  -h, --help           Muestra esta ayuda"
             exit 0
             ;;
         -l|--list)
             list_modules
+            exit 0
+            ;;
+        -s|--sync|sync)
+            shift
+            sync_repository "$*"
             exit 0
             ;;
         -p|--packages)
