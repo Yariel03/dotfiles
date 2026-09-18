@@ -7,3 +7,4 @@
 
 # Added by Antigravity CLI installer
 export PATH="/home/yariel/.local/bin:$PATH"
+. "$HOME/.cargo/env"
