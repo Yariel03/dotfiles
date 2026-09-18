@@ -1,0 +1,14 @@
+{
+  "default": true,
+  // Desactivar reglas pedantes y molestas para redacción cotidiana y documentación
+  "MD013": false, // Longitud de línea máxima (80 caracteres)
+  "MD022": false, // Líneas en blanco obligatorias alrededor de encabezados
+  "MD024": false, // Encabezados múltiples con el mismo texto
+  "MD026": false, // Signos de puntuación al final de encabezados (e.g. ':')
+  "MD029": false, // Prefijo numérico ordenado en listas
+  "MD031": false, // Líneas en blanco alrededor de bloques de código (fences)
+  "MD032": false, // Líneas en blanco alrededor de listas
+  "MD033": false, // HTML en línea permitido (e.g. <kbd>, <img>, etc.)
+  "MD036": false, // Énfasis en lugar de encabezados
+  "MD041": false  // Primera línea obligatoria como H1
+}

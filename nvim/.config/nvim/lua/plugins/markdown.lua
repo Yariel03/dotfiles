@@ -1,59 +1,43 @@
 return {
-  -- 1. Vista previa nativa en ventana Webview flotante con Peek.nvim (HTML real, GitHub CSS, KaTeX, Mermaid)
+  -- 1. Vista previa de Markdown en el navegador Zen Browser (Nueva Ventana)
   {
-    "toppair/peek.nvim",
-    cmd = { "PeekOpen", "PeekClose" },
-    build = "deno task --quiet build:fast",
-    init = function()
-      local local_lib = vim.fn.expand("~/.local/lib")
-      local current_ld = vim.env.LD_LIBRARY_PATH or ""
-      if not current_ld:find(local_lib, 1, true) then
-        vim.env.LD_LIBRARY_PATH = local_lib .. (current_ld ~= "" and (":" .. current_ld) or "")
-      end
+    "iamcco/markdown-preview.nvim",
+    cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
+    ft = { "markdown" },
+    build = function()
+      vim.fn["mkdp#util#install"]()
     end,
-    opts = {
-      auto_load = true,
-      close_on_bdelete = true,
-      syntax = true,
-      theme = "dark",
-      update_on_change = true,
-      app = "webview",
-      filetype = { "markdown" },
-    },
-    config = function(_, opts)
-      require("peek").setup(opts)
-      vim.api.nvim_create_user_command("PeekOpen", require("peek").open, {})
-      vim.api.nvim_create_user_command("PeekClose", require("peek").close, {})
+    init = function()
+      -- Función en Vimscript para invocar a Zen Browser siempre en una nueva ventana sin bloquear Neovim
+      vim.cmd([[
+        function! OpenZenMarkdownPreview(url)
+          call jobstart(['zen-browser', '--new-window', a:url])
+        endfunction
+      ]])
+
+      vim.g.mkdp_browserfunc = "OpenZenMarkdownPreview"
+      vim.g.mkdp_browser = "zen-new-window"
+      vim.g.mkdp_auto_close = 1
+      vim.g.mkdp_theme = "dark"
+      vim.g.mkdp_filetypes = { "markdown" }
     end,
     keys = {
       {
-        "<leader>op",
-        function()
-          local peek = require("peek")
-          if peek.is_open() then
-            peek.close()
-          else
-            peek.open()
-          end
-        end,
-        desc = "Peek: Vista Webview (HTML Real)",
+        "<leader>cp",
+        ft = "markdown",
+        "<cmd>MarkdownPreviewToggle<cr>",
+        desc = "Markdown Preview (Zen Browser - Nueva Ventana)",
       },
       {
-        "<leader>cp",
-        function()
-          local peek = require("peek")
-          if peek.is_open() then
-            peek.close()
-          else
-            peek.open()
-          end
-        end,
-        desc = "Peek: Vista Webview (HTML Real)",
+        "<leader>mp",
+        ft = "markdown",
+        "<cmd>MarkdownPreviewToggle<cr>",
+        desc = "Markdown Preview (Zen Browser - Nueva Ventana)",
       },
     },
   },
 
-  -- 2. Renderizado visual embellecido dentro de la terminal de Neovim
+  -- 2. Renderizado visual embellecido dentro de los buffers de Neovim
   {
     "MeanderingProgrammer/render-markdown.nvim",
     opts = {
@@ -92,6 +76,23 @@ return {
     },
     keys = {
       { "<leader>um", "<cmd>RenderMarkdown toggle<cr>", desc = "Toggle Render Markdown (Terminal)" },
+    },
+  },
+
+  -- 3. Configuración de nvim-lint para silenciar reglas molestas
+  {
+    "mfussenegger/nvim-lint",
+    optional = true,
+    opts = {
+      linters = {
+        ["markdownlint-cli2"] = {
+          args = {
+            "--config",
+            vim.fn.expand("~/.markdownlint.jsonc"),
+            "-",
+          },
+        },
+      },
     },
   },
 }
