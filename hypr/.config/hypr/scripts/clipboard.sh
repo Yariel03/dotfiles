@@ -9,6 +9,9 @@ if [[ -z "$HYPRLAND_INSTANCE_SIGNATURE" ]]; then
     [[ -n "$SIG" ]] && export HYPRLAND_INSTANCE_SIGNATURE="$SIG"
 fi
 
+# Clean previous selection file
+rm -f /dev/shm/clip_selected
+
 # 1. Record the active window class and address before opening the clipboard picker
 ACTIVE_WIN=$(hyprctl activewindow -j 2>/dev/null)
 CLASS=$(echo "$ACTIVE_WIN" | jq -r '.class // empty' 2>/dev/null)
@@ -23,10 +26,12 @@ kitty --class clip_picker \
       -o window_padding_width=12 \
       -e "$HOME/.config/hypr/scripts/clip_tui_rs_bin" "$CLASS" "$ADDR"
 
-EXIT_CODE=$?
+# 3. If an item was chosen (written to /dev/shm/clip_selected), decode, copy and paste
+if [[ -f /dev/shm/clip_selected ]]; then
+    # Decode directly into Wayland clipboard without blocking TUI
+    cliphist decode < /dev/shm/clip_selected | wl-copy
+    rm -f /dev/shm/clip_selected
 
-# 3. If an item was chosen (exit code 0), auto-paste it into the original window
-if [[ $EXIT_CODE -eq 0 ]]; then
     # Wait for the picker window to unmap and focus to return to original window
     sleep 0.18
 

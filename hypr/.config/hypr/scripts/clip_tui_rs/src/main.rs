@@ -64,37 +64,8 @@ fn wipe_cliphist() -> bool {
     w_res.map(|s| s.success()).unwrap_or(false)
 }
 
-fn decode_and_copy(item: &str) -> bool {
-    let mut decode_proc = match Command::new("cliphist")
-        .arg("decode")
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .spawn()
-    {
-        Ok(p) => p,
-        Err(_) => return false,
-    };
-
-    if let Some(mut stdin) = decode_proc.stdin.take() {
-        let _ = stdin.write_all(item.as_bytes());
-        let _ = stdin.write_all(b"\n");
-    }
-
-    let decode_out = match decode_proc.wait_with_output() {
-        Ok(o) => o.stdout,
-        Err(_) => return false,
-    };
-
-    let mut copy_proc = match Command::new("wl-copy").stdin(Stdio::piped()).spawn() {
-        Ok(p) => p,
-        Err(_) => return false,
-    };
-
-    if let Some(mut stdin) = copy_proc.stdin.take() {
-        let _ = stdin.write_all(&decode_out);
-    }
-
-    copy_proc.wait().map(|s| s.success()).unwrap_or(false)
+fn select_item_for_paste(item: &str) -> bool {
+    std::fs::write("/dev/shm/clip_selected", item.as_bytes()).is_ok()
 }
 
 fn decode_preview(item: &str) -> String {
@@ -440,7 +411,7 @@ fn main() -> io::Result<()> {
                     // Select item and Paste with Enter
                     KeyCode::Enter => {
                         if !filtered_items.is_empty() && selected_idx < filtered_items.len() {
-                            decode_and_copy(&filtered_items[selected_idx]);
+                            select_item_for_paste(&filtered_items[selected_idx]);
                             chosen_to_paste = true;
                             break;
                         }
@@ -461,7 +432,7 @@ fn main() -> io::Result<()> {
                     // Enter pastes top / selected match
                     KeyCode::Enter => {
                         if !filtered_items.is_empty() && selected_idx < filtered_items.len() {
-                            decode_and_copy(&filtered_items[selected_idx]);
+                            select_item_for_paste(&filtered_items[selected_idx]);
                             chosen_to_paste = true;
                             break;
                         }
@@ -514,10 +485,11 @@ fn main() -> io::Result<()> {
         }
     }
 
-    // Cleanup terminal
-    disable_raw_mode()?;
-    execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
-    terminal.show_cursor()?;
+    // Proper terminal cleanup
+    let _ = disable_raw_mode();
+    let mut stdout = io::stdout();
+    let _ = execute!(stdout, LeaveAlternateScreen, crossterm::cursor::Show);
+    let _ = stdout.flush();
 
     if chosen_to_paste {
         std::process::exit(0);

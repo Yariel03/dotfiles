@@ -69,4 +69,5 @@ hl.window_rule({
 	match = { class = "clip_picker" },
 	float = true,
 	center = true,
+	stay_focused = true,
 })
