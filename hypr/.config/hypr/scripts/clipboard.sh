@@ -21,7 +21,7 @@ kitty --class clip_picker \
       -o initial_window_height=580 \
       -o remember_window_size=no \
       -o window_padding_width=12 \
-      -e python3 "$HOME/.config/hypr/scripts/clip_tui.py" "$CLASS" "$ADDR"
+      -e "$HOME/.config/hypr/scripts/clip_tui_rs_bin" "$CLASS" "$ADDR"
 
 EXIT_CODE=$?
 
