@@ -4,3 +4,4 @@ local hl = hl
 hl.env("GTK_THEME", "Breeze-Dark")
 hl.env("QT_QPA_PLATFORMTHEME", "kde")
 hl.env("HYPRSHOT_DIR", "/home/yariel/Imágenes/Screenshots")
+hl.env("LD_LIBRARY_PATH", "/home/yariel/.local/lib")

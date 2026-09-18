@@ -4,6 +4,13 @@ return {
     "toppair/peek.nvim",
     cmd = { "PeekOpen", "PeekClose" },
     build = "deno task --quiet build:fast",
+    init = function()
+      local local_lib = vim.fn.expand("~/.local/lib")
+      local current_ld = vim.env.LD_LIBRARY_PATH or ""
+      if not current_ld:find(local_lib, 1, true) then
+        vim.env.LD_LIBRARY_PATH = local_lib .. (current_ld ~= "" and (":" .. current_ld) or "")
+      end
+    end,
     opts = {
       auto_load = true,
       close_on_bdelete = true,
