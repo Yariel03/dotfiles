@@ -1,33 +1,52 @@
 return {
-  -- Vista previa en navegador web (Zen Browser) en tiempo real con scroll sincronizado
+  -- 1. Vista previa nativa en ventana Webview flotante con Peek.nvim (HTML real, GitHub CSS, KaTeX, Mermaid)
   {
-    "iamcco/markdown-preview.nvim",
-    cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
-    ft = { "markdown" },
-    build = function()
-      vim.fn["mkdp#util#install"]()
-    end,
-    init = function()
-      vim.g.mkdp_browser = "zen-browser"
-      vim.g.mkdp_auto_start = 0
-      vim.g.mkdp_auto_close = 1
-      vim.g.mkdp_echo_preview_url = 1
+    "toppair/peek.nvim",
+    cmd = { "PeekOpen", "PeekClose" },
+    build = "deno task --quiet build:fast",
+    opts = {
+      auto_load = true,
+      close_on_bdelete = true,
+      syntax = true,
+      theme = "dark",
+      update_on_change = true,
+      app = "webview",
+      filetype = { "markdown" },
+    },
+    config = function(_, opts)
+      require("peek").setup(opts)
+      vim.api.nvim_create_user_command("PeekOpen", require("peek").open, {})
+      vim.api.nvim_create_user_command("PeekClose", require("peek").close, {})
     end,
     keys = {
       {
-        "<leader>cp",
-        "<cmd>MarkdownPreviewToggle<cr>",
-        desc = "Markdown Preview (Navegador)",
+        "<leader>op",
+        function()
+          local peek = require("peek")
+          if peek.is_open() then
+            peek.close()
+          else
+            peek.open()
+          end
+        end,
+        desc = "Peek: Vista Webview (HTML Real)",
       },
       {
-        "<leader>mp",
-        "<cmd>MarkdownPreviewToggle<cr>",
-        desc = "Markdown Preview (Navegador)",
+        "<leader>cp",
+        function()
+          local peek = require("peek")
+          if peek.is_open() then
+            peek.close()
+          else
+            peek.open()
+          end
+        end,
+        desc = "Peek: Vista Webview (HTML Real)",
       },
     },
   },
 
-  -- Renderizado visual embellecido dentro de la terminal de Neovim
+  -- 2. Renderizado visual embellecido dentro de la terminal de Neovim
   {
     "MeanderingProgrammer/render-markdown.nvim",
     opts = {
