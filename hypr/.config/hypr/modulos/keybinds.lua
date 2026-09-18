@@ -33,8 +33,8 @@ hl.bind(mainMod .. " + SHIFT + DOWN", hl.dsp.window.move({ direction = "d" }))
 -- Toggle Floating (SUPER + F)
 hl.bind(mainMod .. " + F", hl.dsp.window.float({ action = "toggle" }), { description = "Alternar ventana flotante" })
 
--- Historial del Portapapeles (SUPER + V) con Cliphist y Wofi
-hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("cliphist list | wofi --dmenu --allow-images --prompt 'Portapapeles' --insensitive | cliphist decode | wl-copy"), { description = "Historial del portapapeles" })
+-- Historial del Portapapeles (SUPER + V) con Neovim TUI y Auto-pegar
+hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("~/.config/hypr/scripts/clipboard.sh"), { description = "Historial del portapapeles (Neovim TUI)" })
 
 -- Toggle Split (SUPER + J) - Alterna división horizontal/vertical en Dwindle
 hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"), { description = "Toggle split orientation" })

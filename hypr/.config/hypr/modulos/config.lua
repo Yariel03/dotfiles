@@ -62,3 +62,11 @@ hl.animation({
 	bezier = "linear",
 	style = "loop",
 })
+
+-- Regla de ventana flotante para el gestor de portapapeles Neovim
+hl.window_rule({
+	name = "clip_picker",
+	match = { class = "clip_picker" },
+	float = true,
+	center = true,
+})
