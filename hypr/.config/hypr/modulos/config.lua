@@ -71,3 +71,12 @@ hl.window_rule({
 	center = true,
 	stay_focused = true,
 })
+
+-- Regla de ventana flotante para la guía de atajos y comandos
+hl.window_rule({
+	name = "hypr_cheatsheet",
+	match = { class = "hypr_cheatsheet" },
+	float = true,
+	center = true,
+	stay_focused = true,
+})

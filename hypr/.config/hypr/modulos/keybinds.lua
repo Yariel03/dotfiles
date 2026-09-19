@@ -17,6 +17,7 @@ hl.bind("SHIFT + Print", hl.dsp.exec_cmd("hyprshot -m region --raw --freeze | sw
 hl.bind("CTRL + Print", hl.dsp.exec_cmd("hyprshot -m output"), { description = "Captura de pantalla completa con PrtSc" })
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("hyprlock"), { description = "Bloquear pantalla" })
 hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("swaync-client -t -sw"), { description = "Abrir/Cerrar centro de notificaciones" })
+hl.bind(mainMod .. " + H", hl.dsp.exec_cmd("~/.config/hypr/scripts/keybinds_cheatsheet.sh"), { description = "Ver atajos de teclado y comandos" })
 
 -- Window focus movement (SUPER + Arrows)
 hl.bind(mainMod .. " + LEFT", hl.dsp.focus({ direction = "l" }))
