@@ -6,21 +6,18 @@
 
 export PATH="$HOME/.local/bin:$PATH"
 
-# 1. Si la ventana ya está abierta, cerrarla (Toggle con SUPER+H)
-if command -v hyprctl &>/dev/null && command -v jq &>/dev/null; then
-    if hyprctl clients -j 2>/dev/null | jq -e '.[] | select(.class == "hypr_cheatsheet")' > /dev/null 2>&1; then
-        hyprctl dispatch closewindow "class:hypr_cheatsheet" > /dev/null 2>&1
-        exit 0
-    fi
+# Auto-detectar firma de instancia de Hyprland si no está en el entorno actual
+if [[ -z "$HYPRLAND_INSTANCE_SIGNATURE" ]]; then
+    SIG=$(ls -t /run/user/$(id -u)/hypr/ 2>/dev/null | grep -E '^[a-f0-9]+_[0-9]+_[0-9]+$' | head -n 1)
+    [[ -n "$SIG" ]] && export HYPRLAND_INSTANCE_SIGNATURE="$SIG"
 fi
 
-# 2. Función interna que genera el catálogo coloreado y ejecuta fzf
+# 1. Función interna que genera el catálogo coloreado y ejecuta fzf
 show_cheatsheet() {
     # Paleta Tokyo Night en ANSI
     local C_CAT="\033[1;35m"   # Magenta / Lila
     local C_KEY="\033[1;36m"   # Cyan brillante
     local C_DESC="\033[0;37m"  # Blanco suave
-    local C_COMM="\033[0;34m"  # Azul suave
     local NC="\033[0m"
 
     cat << EOF | fzf --ansi \
@@ -69,10 +66,18 @@ ${C_CAT}󰝚  MULTIMEDIA${NC}      ${C_KEY}Play / Pause / Next / Prev${NC}  ${C_
 EOF
 }
 
-# 3. Si se pasa el parámetro interno --run, ejecutar la función dentro de Kitty
+# 2. Si se pasa el parámetro interno --run, ejecutar DIRECTAMENTE la función y salir (sin toggle)
 if [[ "$1" == "--run" ]]; then
     show_cheatsheet
     exit 0
+fi
+
+# 3. Si la ventana ya está abierta externamente, cerrarla (Toggle con SUPER+H)
+if command -v hyprctl &>/dev/null && command -v jq &>/dev/null; then
+    if hyprctl clients -j 2>/dev/null | jq -e '.[] | select(.class == "hypr_cheatsheet")' > /dev/null 2>&1; then
+        hyprctl dispatch closewindow "class:hypr_cheatsheet" > /dev/null 2>&1
+        exit 0
+    fi
 fi
 
 # 4. Lanzar Kitty en modo ventana modal flotante
