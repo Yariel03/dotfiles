@@ -22,7 +22,7 @@ if command -v hyprctl &>/dev/null && command -v jq &>/dev/null; then
     fi
 fi
 
-# 2. Lanzar Kitty en modo ventana modal flotante con Neovim
+# 2. Lanzar Kitty en modo ventana modal flotante con Neovim (sin corrector ortográfico ni diagnósticos)
 exec kitty --class hypr_cheatsheet \
            --title "Guía de Atajos y Comandos - Hyprland" \
            -o initial_window_width=980 \
@@ -30,7 +30,8 @@ exec kitty --class hypr_cheatsheet \
            -o remember_window_size=no \
            -o window_padding_width=16 \
            -e nvim -R -M \
-              -c "setlocal buftype=nofile noswapfile nonumber norelativenumber signcolumn=no laststatus=0 cursorline" \
+              -c "setlocal nospell buftype=nofile noswapfile nonumber norelativenumber signcolumn=no laststatus=0 cursorline" \
+              -c "lua pcall(vim.diagnostic.enable, false, { bufnr = 0 })" \
               -c "nnoremap <buffer><silent> q :qa!<CR>" \
               -c "nnoremap <buffer><silent> <Esc> :qa!<CR>" \
               "$CHEATSHEET_FILE"
