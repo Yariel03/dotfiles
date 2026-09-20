@@ -26,8 +26,8 @@ remove_idle_btn = true
 indicators = [ "Bluetooth", "Network", "Audio", "Microphone"]
 
 [updates]
-check_cmd = "checkupdates; yay -Qum"
-update_cmd = 'kitty --title "Actualización del Sistema" -e zsh -c "yay; echo -e \"\nActualización finalizada. Presione Enter para salir...\"; read" &'
+check_cmd = "/home/yariel/.config/ashell/scripts/check_updates.sh"
+update_cmd = 'kitty --title "Actualización del Sistema" -e zsh -c "sudo pacman -Syu; echo -e \"\nActualización finalizada. Presione Enter para salir...\"; read" &'
 interval = 3600
 
 [appearance]
