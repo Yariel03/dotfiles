@@ -33,16 +33,11 @@ interval = 3600
 [appearance]
 success_color = "#9ece6a"
 text_color = "#a9b1d6"
+workspace_colors = []
 
 [appearance.primary_color]
 base = "#7aa2f7"
 weak = "#24283b"
-text = "#1a1b26"
-
-workspace_colors = [
-    { base = "#7aa2f7", weak = "#24283b", text = "#1a1b26" },
-    { base = "#bb9af7", weak = "#24283b", text = "#1a1b26" }
-]
 
 [appearance.danger_color]
 base = "#f7768e"
@@ -52,7 +47,6 @@ weak = "#e0af68"
 base = "#1a1b26"
 weak = "#24283b"
 strong = "#7aa2f7"
-text = "#1a1b26"
 
 [appearance.secondary_color]
 base = "#0c0d14"
