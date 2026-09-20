@@ -33,6 +33,7 @@
   `SUPER + Rueda Ratón`         🖱️ Desplazarse entre escritorios de trabajo
 
 ## ⚙️  SISTEMA Y CONTROL
+  `SUPER + SPACE`               🌐 Cambiar idioma del teclado (Layout switch)
   `SUPER + H`                   ⌨️ Ver esta guía de atajos y comandos
   `SUPER + L`                   🔒 Bloquear pantalla (Hyprlock)
   `SUPER + N`                   🔔 Abrir/Cerrar centro de notificaciones (SwayNC)

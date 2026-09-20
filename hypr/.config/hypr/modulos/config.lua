@@ -1,6 +1,14 @@
 local hl = hl
 
 hl.config({
+	input = {
+		kb_layout = "us,latam",
+		follow_mouse = 1,
+		touchpad = {
+			natural_scroll = false,
+		},
+		sensitivity = 0,
+	},
 	binds = {
 		scroll_event_delay = 300,
 	},

@@ -18,6 +18,9 @@ hl.bind("CTRL + Print", hl.dsp.exec_cmd("hyprshot -m output"), { description = "
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("hyprlock"), { description = "Bloquear pantalla" })
 hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("swaync-client -t -sw"), { description = "Abrir/Cerrar centro de notificaciones" })
 hl.bind(mainMod .. " + H", hl.dsp.exec_cmd("~/.config/hypr/scripts/keybinds_cheatsheet.sh"), { description = "Ver atajos de teclado y comandos" })
+hl.bind(mainMod .. " + TAB", hl.dsp.exec_cmd("~/.config/hypr/scripts/overview.sh"), { description = "Vista general de escritorios (Overview estilo Ryoku)" })
+hl.bind(mainMod .. " + I", hl.dsp.exec_cmd("~/.config/hypr/scripts/stats_widget.sh"), { description = "Mostrar/Ocultar widget de estado del sistema (Pink Theme)" })
+hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd("~/.config/hypr/scripts/switch_keyboard_layout.sh"), { description = "Cambiar idioma de teclado (Switch layout)" })
 
 -- Window focus movement (SUPER + Arrows)
 hl.bind(mainMod .. " + LEFT", hl.dsp.focus({ direction = "l" }))
