@@ -9,7 +9,6 @@ right = [ "SystemInfo",[ "Tempo", "Privacy", "Settings" ] ,["Tray","KeyboardLayo
 max_title_length = 50
 indicator_format = "Icon"
 
-
 [[CustomModule]]
 name = "appLauncher"
 icon = "\uf303"
@@ -31,14 +30,19 @@ check_cmd = "checkupdates; pacman -Qe"
 update_cmd = 'kitty -e zsh -c "pacman; echo Done - Press enter to exit; read" &'
 interval = 3600
 
-
 [appearance]
-
-primary_color = "#7aa2f7"
 success_color = "#9ece6a"
 text_color = "#a9b1d6"
 
-workspace_colors = [ "#7aa2f7", "#9ece6a" ]
+[appearance.primary_color]
+base = "#7aa2f7"
+weak = "#24283b"
+text = "#1a1b26"
+
+workspace_colors = [
+    { base = "#7aa2f7", weak = "#24283b", text = "#1a1b26" },
+    { base = "#bb9af7", weak = "#24283b", text = "#1a1b26" }
+]
 
 [appearance.danger_color]
 base = "#f7768e"
@@ -46,8 +50,9 @@ weak = "#e0af68"
 
 [appearance.background_color]
 base = "#1a1b26"
-weak = "#24273a"
-strong = "#414868"
+weak = "#24283b"
+strong = "#7aa2f7"
+text = "#1a1b26"
 
 [appearance.secondary_color]
 base = "#0c0d14"
