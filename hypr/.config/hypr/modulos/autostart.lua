@@ -1,4 +1,5 @@
 local hl = hl
+local home = os.getenv("HOME") or "/home/yariel"
 
 -- Autostart commands
 hl.on("hyprland.start", function()
@@ -11,4 +12,5 @@ hl.on("hyprland.start", function()
 	hl.dispatch(hl.dsp.exec_cmd("swayosd-server"))
 	hl.dispatch(hl.dsp.exec_cmd("wl-paste --type text --watch cliphist store"))
 	hl.dispatch(hl.dsp.exec_cmd("wl-paste --type image --watch cliphist store"))
+	hl.dispatch(hl.dsp.exec_cmd(home .. "/.config/hypr/scripts/stats_widget.sh"))
 end)
